@@ -40,12 +40,66 @@
 
 ## Personal Changes
 
+This is my personal branch (`personal`) of [zap-zsh/zap](https://github.com/zap-zsh/zap). It keeps Zap's install location and `list` / `clean` / `update` commands, but adds two things: an install-only mode and plugin compilation. All changes are in `zap.zsh`.
 
+### 1. Install-only mode (`ZAP_NO_SOURCE`)
+
+If `ZAP_NO_SOURCE` is set, `plug` still clones the plugin, checks out any pinned ref, compiles it, and registers it in `ZAP_INSTALLED_PLUGINS` (so `zap list`, `zap clean` and `zap update` keep working), but it does **not** source it. I source plugins myself, deferred, in the order I choose.
+
+- Change: one guard line at the top of `_try_source`.
+- Does not affect local-file `plug` lines (the `[[ -f ... ]] && source` branch), which always source.
+
+```zsh
+# .zshrc
+ZAP_NO_SOURCE=1
+source "$HOME/.local/share/zap/zap.zsh"
+
+plug "romkatv/zsh-defer"
+source $ZAP_PLUGIN_DIR/zsh-defer/zsh-defer.plugin.zsh   # must be sync
+
+plug "zsh-users/zsh-autosuggestions"
+zsh-defer source $ZAP_PLUGIN_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh
+# ...queue order = load order; keep syntax-highlighting last
+```
+
+Keep a `plug` line for every plugin, or `zap clean` will offer to delete it.
+
+### 2. Plugin compilation (`.zwc`)
+
+Plugin `.zsh` and `.zsh-theme` files are compiled to wordcode with `zcompile -U`. Zsh uses a `.zwc` automatically when it is newer than its source, so a stale one is ignored and can never cause wrong behavior.
+
+Compilation runs only when plugin files change, never on normal startup:
+
+| When | Where |
+|---|---|
+| Fresh install | `plug()`, after clone/checkout, before sourcing |
+| `zap update ...` | `_pull()`, after a successful `git pull` (skipped for Zap itself) |
+| On demand | `zap compile` (runs `_zap_compile_all` over every plugin) |
+
+- New functions: `_zap_compile` (per directory) and `_zap_compile_all`.
+- If I change a pinned ref in `.zshrc`, run `zap compile` afterward.
+- Compiling helped little or hurt in earlier tests, so benchmark with `zsh-bench` before assuming a gain.
+
+To undo it: `find $ZAP_PLUGIN_DIR -name '*.zwc' -delete`.
+
+### Maintaining the fork
+
+```zsh
+# remotes: origin = my fork, upstream = zap-zsh/zap
+git fetch upstream
+git rebase upstream/<branch>              # branch I track (release-v1 or master)
+git push --force-with-lease origin personal
+```
+
+- Commit changes on `personal` before running `zap update self`; a dirty tree makes the pull fail.
+- On another machine, use `git pull --rebase` after a force-push.
+- Keep the patch small so rebases stay conflict-free.
+- To return to stock Zap: check out the upstream branch.
 
 ## Install
 
 ```zsh
-zsh <(curl -s https://raw.githubusercontent.com/asrarsyed/zap/master/install.zsh) --branch master
+zsh <(curl -s https://raw.githubusercontent.com/asrarsyed/zap/personal/install.zsh) --branch personal
 ```
 
 > [!TIP]  
