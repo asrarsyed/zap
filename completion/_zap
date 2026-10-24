@@ -5,6 +5,7 @@ local -a subcmds=(
 	"help:Show help informations"
 	"list:List plugins"
 	"update:Update plugins"
+    "compile:Compile plugin files"
 	"version:Show version information"
 )
 _describe 'zap' subcmds

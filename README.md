@@ -38,17 +38,14 @@
 
 </div>
 
-## Prerequisites
+## Personal Changes
 
-- [ZSH](https://www.zsh.org/)
-- a nerd font (optional)
 
-To get your nerd font check out [getNF](https://github.com/ronniedroid/getnf) project or visit [NerdFonts](https://www.nerdfonts.com/) site.
 
 ## Install
 
 ```zsh
-zsh <(curl -s https://raw.githubusercontent.com/zap-zsh/zap/master/install.zsh) --branch release-v1
+zsh <(curl -s https://raw.githubusercontent.com/asrarsyed/zap/master/install.zsh) --branch master
 ```
 
 > [!TIP]  
@@ -145,25 +142,3 @@ rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}/zap"
 ## Notes
 
 For sourcing local files use `$HOME` instead of `~` when giving a full path to the file.
-
----
-
-[![zap thumbnail](https://user-images.githubusercontent.com/29136904/238183118-943e3f25-5198-45a5-a22e-45a3a27db11d.png)](https://www.youtube.com/watch?v=LhDMw6n3GI4)
-
-<!----------------------------------------------------------------------------->
-
-<div align="center">
-
-## Socials
-
-<p align="center">
-<a href="https://github.com/zap-zsh"><img src="https://user-images.githubusercontent.com/696094/196835284-c52d4bd1-7034-439e-848b-47d4f2933dff.svg" width="64" height="64" alt="Github Logo"/></a> <img src="assets/misc/transparent.png" height="1" width="5"/> <a href="https://discord.gg/Xb9B4Ny"><img src="https://user-images.githubusercontent.com/696094/196835282-f5c47d66-29b7-4210-9ee0-d9cdecde3559.svg" width="64" height="64" alt="Discord Logo"/></a> <img src="assets/misc/transparent.png" height="1" width="5"/> <a href="https://twitter.com/chrisatmachine"><img src="https://user-images.githubusercontent.com/696094/196835281-52617611-ede6-40da-a4bc-8c5025622bbf.svg" width="64" height="64" alt="Twitter Logo"/></a> <img src="assets/misc/transparent.png" height="1" width="5"/> <a href="https://reddit.com/r/zapzsh"><img src="https://user-images.githubusercontent.com/696094/196835278-041a4f99-28e1-4a93-8e35-c8912f1089fc.svg" width="64" height="64" alt="Reddit Logo"/></a>
-</p>
-
-## Thanks to all contributors
-
-<a href="https://github.com/zap-zsh/zap/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=zap-zsh/zap" />
-</a>
-
-</div>

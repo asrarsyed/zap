@@ -6,9 +6,30 @@ export ZAP_PLUGIN_DIR="$ZAP_DIR/plugins"
 export -a ZAP_INSTALLED_PLUGINS=()
 fpath+="$ZAP_DIR/completion"
 
+# Compile plugin .zsh files to wordcode (.zwc). Skips files whose .zwc is
+# already newer than the source. Silent; always returns 0.
+function _zap_compile() {
+    emulate -L zsh
+    local f
+    for f in "$1"/**/*.{zsh,zsh-theme}(N.); do
+        [[ ! "$f.zwc" -nt "$f" && -r "$f" && -w "${f:h}" ]] && builtin zcompile -U "$f" 2>/dev/null
+    done
+    return 0
+}
+
+function _zap_compile_all() {
+    local d
+    echo "⚡ Zap - Compile\n"
+    for d in "$ZAP_PLUGIN_DIR"/*(N/); do
+        _zap_compile "$d"
+        echo "⚡ ${d:t}"
+    done
+}
+
 function plug() {
 
     function _try_source() {
+        [[ -n $ZAP_NO_SOURCE ]] && return 0   # install-only: clone but don't source
         if [[ "$plugin_name" == "*" ]]; then
             # Treat * as a glob pattern
             local -a initfiles=(
@@ -51,22 +72,25 @@ function plug() {
     fi
 
     local git_ref="$2"
+    local _zap_fresh=0                                   # NEW
     if [ ! -d "$plugin_dir" ]; then
         echo "🔌 Zap is installing $plugin_name..."
         git clone --depth 1 "${ZAP_GIT_PREFIX:-"https://github.com/"}${plugin}.git" "$plugin_dir" > /dev/null 2>&1 || { echo -e "\e[1A\e[K❌ Failed to clone $plugin_name"; return 12 }
         echo -e "\e[1A\e[K⚡ Zap installed $plugin_name"
+        _zap_fresh=1                                     # NEW
     fi
     [[ -n "$git_ref" ]] && {
         git -C "$plugin_dir" remote set-branches origin '*' > /dev/null 2>&1
         git -C "$plugin_dir" pull --unshallow > /dev/null 2>&1
         git -C "$plugin_dir" checkout "$git_ref" > /dev/null 2>&1 || { echo "❌ Failed to checkout $git_ref"; return 13 }
     }
+    (( _zap_fresh )) && _zap_compile "$plugin_dir"       # NEW: after checkout, before sourcing
     _try_source && { ZAP_INSTALLED_PLUGINS+="$plugin_name" && return 0 } || echo "❌ $plugin_name not activated" && return 1
 }
 
 function _pull() {
     echo "🔌 updating ${1:t}..."
-    git -C $1 pull > /dev/null 2>&1 && { echo -e "\e[1A\e[K⚡ ${1:t} updated!"; return 0 } || { echo -e "\e[1A\e[K❌ Failed to pull"; return 14 }
+    git -C $1 pull > /dev/null 2>&1 && { [[ $1 != "$ZAP_DIR" ]] && _zap_compile $1; echo -e "\e[1A\e[K⚡ ${1:t} updated!"; return 0 } || { echo -e "\e[1A\e[K❌ Failed to pull"; return 14 }
 }
 
 function _zap_clean() {
@@ -156,6 +180,7 @@ COMMANDS:
     help           Show this help message
     list           List plugins
     update         Update plugins
+    compile        Compile plugin files
     version        Show version information
 
 OPTIONS:
@@ -178,6 +203,7 @@ function zap() {
         help "_zap_help"
         list "_zap_list"
         update "_zap_update"
+        compile "_zap_compile_all"      # NEW
         version "_zap_version"
     )
     emulate -L zsh
